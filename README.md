@@ -1,3 +1,4 @@
+[![DOI:10.1101/2020.07.15.204701](https://zenodo.org/badge/DOI/10.1101/2020.07.15.204701.svg)](https://doi.org/10.1101/2020.07.15.204701)
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Documentation Status](https://readthedocs.com/projects/graphein-graphein/badge/?version=latest&token=e0e095fecfd2f1e2448613c1bc4676cb6c22851d7a5cfde0ea35ce822887bc3b)](https://graphein-graphein.readthedocs-hosted.com/en/latest/?badge=latest)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/graphein)
@@ -10,10 +11,14 @@ Protein Graph Library
 
 This package provides functionality for producing a number of types of graph-based representations of proteins. We provide compatibility with standard formats, as well as graph objects designed for ease of use with popular deep learning libraries.
 
+## What's New?
+* Protein Graph Visualisation!
+* RNA Graph Construction from Dotbracket notation
+
 ## Example usage
+### Creating a Protein Graph
 ```python
 from graphein.construct_graphs import  ProteinGraph
-from graphein.construct_meshes import  ProteinMesh
 
 # Initialise ProteinGraph class
 pg = ProteinGraph(granularity='CA', insertions=False, keep_hets=True,
@@ -31,7 +36,10 @@ graph = pg.dgl_graph_from_pdb_file(file_path='examples/pdbs/pdb3eiy.pdb', contac
 
 # Create atom-level graphs
 graph = pg._make_atom_graph(pdb_code='3eiy', graph_type='bigraph')
-
+```
+### Creating a Protein Mesh
+```python
+from graphein.construct_meshes import  ProteinMesh
 # Initialise ProteinMesh class
 pm = ProteinMesh()
 
@@ -40,6 +48,17 @@ verts, faces, aux = pm.create_mesh(pdb_code='3eiy', out_dir='examples/meshes/')
 # Pytorch3D Mesh Object from PDB File
 verts, faces, aux = pm.create_mesh(pdb_file='examples/pdbs/pdb3eiy.pdb')
 ```
+### Creating an RNA Graph
+```python
+from graphein.construct_graphs import RNAGraph
+# Initialise RNAGraph Constructor
+rg = RNAGraph()
+# Build the graph from a dotbracket & optional sequence
+rna = rg.dgl_graph_from_dotbracket('..(((((..(((...)))..)))))...', sequence='UUGGAGUACACAACCUGUACACUCUUUC')
+```
+
+
+
 
 ## Parameters
 Graphs can be constructed according to walks through the graph in the figure below.
@@ -58,7 +77,7 @@ include_ss: bool - calculate protein SS and surface features using DSSP and assi
 ```
 
 ## Installation
-1. Create env
+1. Create env:
 
     ```bash
     conda create --name graphein python=3.7
@@ -69,7 +88,7 @@ include_ss: bool - calculate protein SS and surface features using DSSP and assi
 
     [Installation Instructions](https://getcontacts.github.io/getting_started.html)
     #### MacOS
-    
+
     ```bash
    
      # Install get_contact_ticc.py dependencies
@@ -77,11 +96,11 @@ include_ss: bool - calculate protein SS and surface features using DSSP and assi
      $ pip install ticc==0.1.4
       
      # Install vmd-python dependencies
-     $ conda install netcdf4 numpy pandas seaborn  expat tk=8.5  # Alternatively use pip
+     $ conda install netcdf4 numpy pandas seaborn expat tk=8.5  # Alternatively use pip
      $ brew install netcdf pyqt # Assumes https://brew.sh/ is installed
     
      # Install vmd-python library
-     $ conda install vmd-python
+     $ conda install -c conda-forge vmd-python
     
      # Set up getcontacts library
      $ git clone https://github.com/getcontacts/getcontacts.git
@@ -113,39 +132,62 @@ include_ss: bool - calculate protein SS and surface features using DSSP and assi
       echo "export PATH=`pwd`/getcontacts:\$PATH" >> ~/.bashrc
       source ~/.bashrc
 
-    ```
-    
-4. Install Biopython
+
+3. Install [Biopython](https://biopython.org) & [RDKit](https://www.rdkit.org/docs/):
+
+    N.B. DGLLife *requires* `rdkit==2018.09.3`
+
     ```bash
     conda install biopython
+    conda install -c conda-forge rdkit==2018.09.3
     ``` 
    
-5. Install [RDKit](http://rdkit.org/docs/)
 
-    [Installation instructions](http://rdkit.org/docs/Install.html)
-    ```bash
-    conda install -c conda-forge rdkit==2018.09.3
-   ```
+4. Install [DSSP](https://github.com/cmbi/hssp):
 
-4. Install [DSSP](https://github.com/cmbi/hssp)
 
     We use DSSP for computing some protein features
     
     ```bash
     $ conda install -c salilab dssp
     ```
-
-6. Install [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/)
+5. Install [PyTorch](https://pytorch.org), [DGL](https://docs.dgl.ai/en/0.4.x/index.html) and [DGL LifeSci](https://lifesci.dgl.ai/install/index.html):
+    
+    N.B. Make sure to install appropriate version for your CUDA version
 
     ```bash
-    $ pip install torch-scatter
-    $ pip install torch-sparse
-    $ pip install torch-spline-conv
-    $ pip install torch-cluster
+    # Install PyTorch: MacOS
+    $ conda install pytorch torchvision -c pytorch                      # Only CPU Build
+    
+    # Install PyTorch: Linux
+    $ conda install pytorch torchvision cpuonly -c pytorch              # For CPU Build
+    $ conda install pytorch torchvision cudatoolkit=9.2 -c pytorch      # For CUDA 9.2 Build
+    $ conda install pytorch torchvision cudatoolkit=10.1 -c pytorch     # For CUDA 10.1 Build
+    $ conda install pytorch torchvision cudatoolkit=10.2 -c pytorch     # For CUDA 10.2 Build
+   
+    # Install DGL. N.B. We require 0.4.3 until compatibility with DGL 0.5.0+ is implemented
+    $ pip install dgl==0.4.3
+    
+    # Install DGL LifeSci
+    $ conda install -c dglteam dgllife
+    ```
+
+
+5. Install [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html):
+
+
+
+    ```bash
+    $ pip install torch-scatter==latest+${CUDA} -f https://pytorch-geometric.com/whl/torch-${TORCH}.html
+    $ pip install torch-sparse==latest+${CUDA} -f https://pytorch-geometric.com/whl/torch-${TORCH}.html
+    $ pip install torch-cluster==latest+${CUDA} -f https://pytorch-geometric.com/whl/torch-${TORCH}.html
+    $ pip install torch-spline-conv==latest+${CUDA} -f https://pytorch-geometric.com/whl/torch-${TORCH}.html
     $ pip install torch-geometric
     ```
+   Where `${CUDA}` and `${TORCH}` should be replaced by your specific CUDA version (`cpu`, `cu92`, `cu101`, `cu102`) and PyTorch version (`1.4.0`, `1.5.0`, `1.6.0`), respectively 
    
    N.B. Follow the [instructions in the Torch-Geometric Docs](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) to install the versions appropriate to your CUDA version.
+
 
 7. Install [PyMol](https://pymol.org/2/) and [IPyMol](https://github.com/cxhernandez/ipymol)
 
@@ -156,15 +198,11 @@ include_ss: bool - calculate protein SS and surface features using DSSP and assi
    $ pip install . 
    ```
    
-   N.B. The PyPi package seems to be behind the github repo. We require functionality that is not present in the PyPi package.
-   
-8. Install [DGL](https://docs.dgl.ai) and associated libraries
-    ```bash
-    $ conda install -c dglteam dgl
-    $ conda install -c dglteam dgllife
-   ```
 
-8. Install graphein
+   N.B. The PyPi package seems to be behind the github repo. We require functionality that is not present in the PyPi package in order to construct meshes.
+
+
+8. Install graphein:
 
     ```bash
     $ git clone https://www.github.com/a-r-j/graphein
